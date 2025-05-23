@@ -10,32 +10,21 @@ jobs:
     runs-on: windows-latest 
 
     steps:
-    - name: Checkout code
+    - name: Checkout code into a specific directory
       uses: actions/checkout@v4
-      # SIN path. Esto clonará en ${{ github.workspace }}/<nombre-del-repo>
-      # Si github.workspace = D:\a\X\X y repo = X, código estará en D:\a\X\X\X
-
-    - name: Define code directory
-      id: paths
-      shell: bash
-      run: |
-        REPO_NAME=$(basename ${{ github.repository }})
-        # Esta es la ruta donde actions/checkout@v4 (sin path) DEBERÍA poner el código
-        echo "CODE_DIR_RELATIVE_TO_WORKSPACE=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "FULL_CODE_DIR=${{ github.workspace }}/$REPO_NAME" >> $GITHUB_OUTPUT
+      with:
+        path: 'my_project_code' # Clonamos en una carpeta simple llamada 'my_project_code'
 
     - name: Debug Directory Structure
       shell: bash
       run: |
-        echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
-        echo "CODE_DIR_RELATIVE_TO_WORKSPACE: ${{ steps.paths.outputs.CODE_DIR_RELATIVE_TO_WORKSPACE }}"
-        echo "FULL_CODE_DIR: ${{ steps.paths.outputs.FULL_CODE_DIR }}"
+        echo "Initial PWD: $(pwd)"
         echo "------------------------------------"
-        echo "Content of GITHUB_WORKSPACE (ls -la ${{ github.workspace }} ):"
-        ls -la ${{ github.workspace }} || echo "ls failed for ${{ github.workspace }}"
+        echo "Content of current directory (PWD) where checkout should have created 'my_project_code':"
+        ls -la .
         echo "------------------------------------"
-        echo "Content of FULL_CODE_DIR (ls -la ${{ steps.paths.outputs.FULL_CODE_DIR }} ):"
-        ls -la ${{ steps.paths.outputs.FULL_CODE_DIR }} || echo "ls failed for FULL_CODE_DIR"
+        echo "Content of 'my_project_code' directory:"
+        ls -la ./my_project_code || echo "ls failed for ./my_project_code"
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -46,19 +35,17 @@ jobs:
       run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      shell: bash # Usar bash para cd
-      run: |
-        cd "${{ steps.paths.outputs.FULL_CODE_DIR }}"
-        pnpm install 
+      shell: bash 
+      working-directory: ./my_project_code # Usamos la carpeta que creamos
+      run: pnpm install 
 
     - name: Build the executable
-      shell: bash # Usar bash para cd
-      run: |
-        cd "${{ steps.paths.outputs.FULL_CODE_DIR }}"
-        pnpm run build-exe 
+      shell: bash 
+      working-directory: ./my_project_code # Usamos la carpeta que creamos
+      run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        path: ${{ steps.paths.outputs.FULL_CODE_DIR }}/PetroleumPumpDesigner.exe
+        path: ./my_project_code/PetroleumPumpDesigner.exe # Ruta relativa a la carpeta que creamos
