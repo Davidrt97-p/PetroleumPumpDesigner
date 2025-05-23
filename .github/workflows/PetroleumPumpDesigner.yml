@@ -1,17 +1,19 @@
-name: PetroleumPumpDesigner
+name: Build Windows Executable
 
 on:
   push:
-    branches: [ main ] # O 'master' si esa es tu rama principal
-  workflow_dispatch: # Permite ejecutarlo manualmente
+    branches: [ main ] 
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: windows-latest 
-       
+
     defaults:
-          run:
-            working-directory: ./PetroleumPumpDesigner
+      run:
+        # Este es el directorio donde está tu código clonado
+        working-directory: ./PetroleumPumpDesigner 
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -19,24 +21,24 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        # ¡¡¡MUY IMPORTANTE!!!
-        # Ve a la Shell de Replit, escribe 'node -v' y pon esa versión aquí.
-        # Por ejemplo, si 'node -v' te da v18.17.0, usa '18' o '18.x' o '18.17.0'
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
 
     - name: Install pnpm
-      run: npm install -g pnpm # Instala pnpm globalmente en el runner
+      # Ejecuta este comando en el directorio de trabajo raíz del runner, no en la subcarpeta del proyecto
+      working-directory: ${{ github.workspace }} # <--- ¡CAMBIO IMPORTANTE AQUÍ!
+      run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      run: pnpm install # Usa pnpm para instalar dependencias
+      # Este usará el working-directory de 'defaults'
+      run: pnpm install 
 
     - name: Build the executable
-      # Asegúrate de que 'build-exe' exista en la sección 'scripts' de tu package.json
-      run: pnpm run build-exe # Usa pnpm para ejecutar el script
+      # Este usará el working-directory de 'defaults'
+      run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: PetroleumPumpDesigner-Windows # Nombre del archivo ZIP que descargarás
-        # Este 'path' debe ser el nombre EXACTO del .exe que genera tu script 'build-exe'
+        name: PetroleumPumpDesigner-Windows 
+        # El path del artefacto es relativo al working-directory de 'defaults'
         path: PetroleumPumpDesigner.exe 
