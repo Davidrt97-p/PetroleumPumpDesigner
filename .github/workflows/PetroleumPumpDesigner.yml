@@ -21,7 +21,17 @@ jobs:
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
 
     - name: Install pnpm
-      run: npm install -g pnpm 
+      run: npm install -g pnpm
+      
+    - name: List files for debugging
+      run: |
+        echo "--- Current Directory (pwd) ---"
+        pwd
+        echo "--- Listing github.workspace (ls -la ${{ github.workspace }}) ---"
+        ls -la ${{ github.workspace }}
+        echo "--- Listing github.workspace/PetroleumPumpDesigner (if it exists) ---"
+        ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Directory ${{ github.workspace }}/PetroleumPumpDesigner does not exist or ls failed"
+      shell: bash
 
     - name: Install dependencies with pnpm
       # Ahora pnpm install se ejecuta en la raíz del workspace, donde está package.json
