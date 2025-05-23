@@ -22,17 +22,24 @@ jobs:
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN! (Ej: la que te da 'node -v' en Replit)
 
     - name: Install pnpm
-      run: npm install -g pnpm 
-
+      run: npm install -g pnpm
+      
     - name: List files for debugging
       run: |
-        echo "--- Current Directory (pwd) ---"
-        pwd
-        echo "--- Listing github.workspace (ls -la ${{ github.workspace }}) ---"
+        echo "GITHUB_WORKSPACE is: ${{ github.workspace }}"
+        echo "-------------------------------------------"
+        echo "Current PWD is: $(pwd)"
+        echo "-------------------------------------------"
+        echo "Listing content of GITHUB_WORKSPACE ( ${{ github.workspace }} ):"
         ls -la ${{ github.workspace }}
-        echo "--- Listing github.workspace/PetroleumPumpDesigner (ls -la ${{ github.workspace }}/PetroleumPumpDesigner) ---"
-        ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Directory ${{ github.workspace }}/PetroleumPumpDesigner does not exist or ls failed"
+        echo "-------------------------------------------"
+        echo "Listing content of GITHUB_WORKSPACE/PetroleumPumpDesigner ( ${{ github.workspace }}/PetroleumPumpDesigner ):"
+        ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Could not list ${{ github.workspace }}/PetroleumPumpDesigner"
+        echo "-------------------------------------------"
+        echo "Listing content of current PWD ( $(pwd) ):"
+        ls -la $(pwd)
       shell: bash
+   
 
     - name: Install dependencies with pnpm
       working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # Ejecutar en la carpeta del repo
