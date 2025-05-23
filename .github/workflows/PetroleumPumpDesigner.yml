@@ -1,13 +1,12 @@
-name: Build Windows Executable
-
+name: Build Windows Executable # Puedes mantener el nombre o cambiarlo a "Debug Workspace"
 on:
   push:
     branches: [ main ] 
   workflow_dispatch: 
 
 jobs:
-  build:
-    runs-on: windows-latest 
+  build: # Puedes renombrar el job a 'debug_ubuntu_workspace' si quieres
+    runs-on: ubuntu-latest # <--- ¡CAMBIO IMPORTANTE AQUÍ!
 
     steps:
     # Paso 1: Solo checkout, sin path, para ver dónde realmente pone las cosas
@@ -16,7 +15,7 @@ jobs:
 
     # Paso 2: Listar TODO desde GITHUB_WORKSPACE para entender la estructura
     - name: Debug Initial Directory Structure
-      shell: bash
+      shell: bash # En Ubuntu, bash es el shell por defecto, pero no hace daño ser explícito
       run: |
         echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
         echo "Initial PWD: $(pwd)"
@@ -24,41 +23,9 @@ jobs:
         echo "Content of GITHUB_WORKSPACE (RECURSIVE ls -R):"
         ls -R ${{ github.workspace }} || echo "ls -R failed for GITHUB_WORKSPACE"
 
-    # Pasos siguientes comentados hasta que entendamos el checkout
+    # El resto de los pasos siguen comentados porque solo queremos depurar el workspace y el checkout
     # - name: Set up Node.js
     #   uses: actions/setup-node@v4
     #   with:
     #     node-version: '18' 
-
-    # - name: Install pnpm
-    #   run: npm install -g pnpm 
-
-    # - name: Determine Code Directory and Install Dependencies
-    #   shell: bash
-    #   run: |
-    #     # Intentar encontrar el package.json
-    #     CODE_DIR_WITH_PACKAGE_JSON=$(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)
-    #     if [ -z "$CODE_DIR_WITH_PACKAGE_JSON" ]; then
-    #       echo "package.json not found anywhere under ${{ github.workspace }}"
-    #       exit 1
-    #     fi
-    #     echo "Found package.json in: $CODE_DIR_WITH_PACKAGE_JSON"
-    #     cd "$CODE_DIR_WITH_PACKAGE_JSON"
-    #     echo "Current directory for pnpm install: $(pwd)"
-    #     pnpm install
-
-    # - name: Build the executable
-    #   shell: bash
-    #   # Asumiendo que CODE_DIR_WITH_PACKAGE_JSON fue el correcto
-    #   run: |
-    #     CODE_DIR_WITH_PACKAGE_JSON=$(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)
-    #     cd "$CODE_DIR_WITH_PACKAGE_JSON"
-    #     pnpm run build-exe 
-
-    # - name: Upload artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: PetroleumPumpDesigner-Windows 
-    #     # Asumiendo que CODE_DIR_WITH_PACKAGE_JSON fue el correcto
-    #     # y que el .exe se crea ahí
-    #     path: $(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)/PetroleumPumpDesigner.exe
+    # ... (y así sucesivamente)
