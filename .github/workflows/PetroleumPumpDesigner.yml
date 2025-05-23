@@ -8,13 +8,12 @@ on:
 jobs:
   build:
     runs-on: windows-latest 
-    # ¡HEMOS QUITADO LA SECCIÓN 'DEFAULTS' DE AQUÍ!
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      # Por defecto, esto clona en un directorio con el nombre del repo,
-      # por ejemplo, 'PetroleumPumpDesigner'
+      # Esto clona el repositorio en un directorio con el nombre del repositorio,
+      # por ejemplo, en ${{ github.workspace }}/PetroleumPumpDesigner
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -22,23 +21,21 @@ jobs:
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
 
     - name: Install pnpm
-      # Este comando es global, no necesita un working-directory específico dentro del repo
       run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      # Especificamos el directorio donde está el package.json
-      working-directory: ./PetroleumPumpDesigner # <--- ¡CAMBIO IMPORTANTE AQUÍ! (Usa el nombre exacto de tu repo)
+      # Usamos la ruta completa al directorio del repositorio
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # <--- CAMBIO
       run: pnpm install 
 
     - name: Build the executable
-      # Especificamos el directorio donde está el package.json y donde se ejecutará el script
-      working-directory: ./PetroleumPumpDesigner # <--- ¡CAMBIO IMPORTANTE AQUÍ! (Usa el nombre exacto de tu repo)
+      # Usamos la ruta completa al directorio del repositorio
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # <--- CAMBIO
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        # El path del artefacto debe ser relativo a la raíz del workspace,
-        # pero el ejecutable se genera DENTRO de la carpeta del repo.
-        path: ./PetroleumPumpDesigner/PetroleumPumpDesigner.exe # <--- ¡CAMBIO IMPORTANTE AQUÍ!
+        # El path del artefacto sigue siendo relativo al workspace, pero el ejecutable está dentro de la carpeta del repo
+        path: ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe # <--- CAMBIO
