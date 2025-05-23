@@ -12,33 +12,30 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      # Sin 'path'. Esto clonará en ${{ github.workspace }}/<nombre-del-repo>
+      # SIN path. Esto clonará en ${{ github.workspace }}/<nombre-del-repo>
       # Si github.workspace = D:\a\X\X y repo = X, código estará en D:\a\X\X\X
 
     - name: Define code directory
       id: paths
       shell: bash
       run: |
-        # Construye la ruta donde realmente está el código
-        # GITHUB_WORKSPACE ya es D:\a\PetroleumPumpDesigner\PetroleumPumpDesigner
-        # El checkout crea OTRA PetroleumPumpDesigner dentro.
-        # Usamos el nombre del repositorio para construir la ruta.
-        # El nombre del repo se puede obtener de github.repository (ej: 'usuario/nombre-repo')
-        # y extraemos solo 'nombre-repo'.
         REPO_NAME=$(basename ${{ github.repository }})
-        echo "CODE_DIR=${{ github.workspace }}/$REPO_NAME" >> $GITHUB_OUTPUT
+        # Esta es la ruta donde actions/checkout@v4 (sin path) DEBERÍA poner el código
+        echo "CODE_DIR_RELATIVE_TO_WORKSPACE=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "FULL_CODE_DIR=${{ github.workspace }}/$REPO_NAME" >> $GITHUB_OUTPUT
 
     - name: Debug Directory Structure
       shell: bash
       run: |
         echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
-        echo "Code is expected in: ${{ steps.paths.outputs.CODE_DIR }}"
+        echo "CODE_DIR_RELATIVE_TO_WORKSPACE: ${{ steps.paths.outputs.CODE_DIR_RELATIVE_TO_WORKSPACE }}"
+        echo "FULL_CODE_DIR: ${{ steps.paths.outputs.FULL_CODE_DIR }}"
         echo "------------------------------------"
-        echo "Content of GITHUB_WORKSPACE:"
-        ls -la ${{ github.workspace }}
+        echo "Content of GITHUB_WORKSPACE (ls -la ${{ github.workspace }} ):"
+        ls -la ${{ github.workspace }} || echo "ls failed for ${{ github.workspace }}"
         echo "------------------------------------"
-        echo "Content of CODE_DIR ( ${{ steps.paths.outputs.CODE_DIR }} ):"
-        ls -la ${{ steps.paths.outputs.CODE_DIR }} || echo "ls failed for CODE_DIR"
+        echo "Content of FULL_CODE_DIR (ls -la ${{ steps.paths.outputs.FULL_CODE_DIR }} ):"
+        ls -la ${{ steps.paths.outputs.FULL_CODE_DIR }} || echo "ls failed for FULL_CODE_DIR"
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -49,15 +46,19 @@ jobs:
       run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      working-directory: ${{ steps.paths.outputs.CODE_DIR }}
-      run: pnpm install 
+      shell: bash # Usar bash para cd
+      run: |
+        cd "${{ steps.paths.outputs.FULL_CODE_DIR }}"
+        pnpm install 
 
     - name: Build the executable
-      working-directory: ${{ steps.paths.outputs.CODE_DIR }}
-      run: pnpm run build-exe 
+      shell: bash # Usar bash para cd
+      run: |
+        cd "${{ steps.paths.outputs.FULL_CODE_DIR }}"
+        pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        path: ${{ steps.paths.outputs.CODE_DIR }}/PetroleumPumpDesigner.exe
+        path: ${{ steps.paths.outputs.FULL_CODE_DIR }}/PetroleumPumpDesigner.exe
