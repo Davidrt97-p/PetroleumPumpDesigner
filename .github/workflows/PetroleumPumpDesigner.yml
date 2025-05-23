@@ -1,0 +1,39 @@
+name: PetroleumPumpDesigner
+
+on:
+  push:
+    branches: [ main ] # O 'master' si esa es tu rama principal
+  workflow_dispatch: # Permite ejecutarlo manualmente
+
+jobs:
+  build:
+    runs-on: windows-latest 
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        # ¡¡¡MUY IMPORTANTE!!!
+        # Ve a la Shell de Replit, escribe 'node -v' y pon esa versión aquí.
+        # Por ejemplo, si 'node -v' te da v18.17.0, usa '18' o '18.x' o '18.17.0'
+        node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
+
+    - name: Install pnpm
+      run: npm install -g pnpm # Instala pnpm globalmente en el runner
+
+    - name: Install dependencies with pnpm
+      run: pnpm install # Usa pnpm para instalar dependencias
+
+    - name: Build the executable
+      # Asegúrate de que 'build-exe' exista en la sección 'scripts' de tu package.json
+      run: pnpm run build-exe # Usa pnpm para ejecutar el script
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PetroleumPumpDesigner-Windows # Nombre del archivo ZIP que descargarás
+        # Este 'path' debe ser el nombre EXACTO del .exe que genera tu script 'build-exe'
+        path: PetroleumPumpDesigner.exe 
