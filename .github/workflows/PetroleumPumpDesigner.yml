@@ -8,15 +8,13 @@ on:
 jobs:
   build:
     runs-on: windows-latest 
-
-    defaults:
-      run:
-        # Este es el directorio donde está tu código clonado
-        working-directory: ./PetroleumPumpDesigner 
+    # ¡HEMOS QUITADO LA SECCIÓN 'DEFAULTS' DE AQUÍ!
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      # Por defecto, esto clona en un directorio con el nombre del repo,
+      # por ejemplo, 'PetroleumPumpDesigner'
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -24,21 +22,23 @@ jobs:
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
 
     - name: Install pnpm
-      # Ejecuta este comando en el directorio de trabajo raíz del runner, no en la subcarpeta del proyecto
-      working-directory: ${{ github.workspace }} # <--- ¡CAMBIO IMPORTANTE AQUÍ!
+      # Este comando es global, no necesita un working-directory específico dentro del repo
       run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      # Este usará el working-directory de 'defaults'
+      # Especificamos el directorio donde está el package.json
+      working-directory: ./PetroleumPumpDesigner # <--- ¡CAMBIO IMPORTANTE AQUÍ! (Usa el nombre exacto de tu repo)
       run: pnpm install 
 
     - name: Build the executable
-      # Este usará el working-directory de 'defaults'
+      # Especificamos el directorio donde está el package.json y donde se ejecutará el script
+      working-directory: ./PetroleumPumpDesigner # <--- ¡CAMBIO IMPORTANTE AQUÍ! (Usa el nombre exacto de tu repo)
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        # El path del artefacto es relativo al working-directory de 'defaults'
-        path: PetroleumPumpDesigner.exe 
+        # El path del artefacto debe ser relativo a la raíz del workspace,
+        # pero el ejecutable se genera DENTRO de la carpeta del repo.
+        path: ./PetroleumPumpDesigner/PetroleumPumpDesigner.exe # <--- ¡CAMBIO IMPORTANTE AQUÍ!
