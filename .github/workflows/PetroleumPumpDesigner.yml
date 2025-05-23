@@ -12,12 +12,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      # SIN path. Debería clonar en ${{ github.workspace }}/NOMBREDELREPO
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18' # <-- ¡VERIFICA Y AJUSTA!
+        node-version: '18'
 
     - name: Install pnpm
       run: npm install -g pnpm 
@@ -29,24 +28,17 @@ jobs:
         echo "------------------------------------"
         echo "Content of GITHUB_WORKSPACE:"
         ls -la ${{ github.workspace }}
-        echo "------------------------------------"
-        echo "Content of GITHUB_WORKSPACE/PetroleumPumpDesigner (POSSIBLE CODE LOCATION):"
-        ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Subdir not found or ls failed"
 
     - name: Install dependencies with pnpm
-      # Asumiendo que el código está en ${{ github.workspace }}/PetroleumPumpDesigner
-      # y GITHUB_WORKSPACE es D:\a\PetroleumPumpDesigner\PetroleumPumpDesigner
-      # entonces la ruta real es D:\a\PetroleumPumpDesigner\PetroleumPumpDesigner\PetroleumPumpDesigner
-      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner 
+      working-directory: ${{ github.workspace }}
       run: pnpm install 
 
     - name: Build the executable
-      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner
+      working-directory: ${{ github.workspace }}
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        path: ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe
-        
+        path: ${{ github.workspace }}/PetroleumPumpDesigner.exe
