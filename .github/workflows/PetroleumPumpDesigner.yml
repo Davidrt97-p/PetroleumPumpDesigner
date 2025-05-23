@@ -1,4 +1,4 @@
-name: Build Windows Exe
+name: Build Windows Executable
 
 on:
   push:
@@ -12,8 +12,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      # Esto clona el repositorio en un directorio con el nombre del repositorio,
-      # por ejemplo, en ${{ github.workspace }}/PetroleumPumpDesigner
+      with:
+        path: '.' # <--- ¡CAMBIO MUY IMPORTANTE AQUÍ! Clona en el directorio raíz del workspace.
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -24,18 +24,16 @@ jobs:
       run: npm install -g pnpm 
 
     - name: Install dependencies with pnpm
-      # Usamos la ruta completa al directorio del repositorio
-      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # <--- CAMBIO
+      # Ahora pnpm install se ejecuta en la raíz del workspace, donde está package.json
       run: pnpm install 
 
     - name: Build the executable
-      # Usamos la ruta completa al directorio del repositorio
-      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # <--- CAMBIO
+      # Ahora pnpm run build-exe se ejecuta en la raíz del workspace
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        # El path del artefacto sigue siendo relativo al workspace, pero el ejecutable está dentro de la carpeta del repo
-        path: ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe # <--- CAMBIO
+        # El ejecutable ahora se genera directamente en la raíz del workspace
+        path: PetroleumPumpDesigner.exe # <--- CAMBIO IMPORTANTE AQUÍ!
