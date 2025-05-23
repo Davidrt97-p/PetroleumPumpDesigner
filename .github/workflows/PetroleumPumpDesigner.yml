@@ -10,42 +10,55 @@ jobs:
     runs-on: windows-latest 
 
     steps:
-    - name: Checkout code into a specific directory
+    # Paso 1: Solo checkout, sin path, para ver dónde realmente pone las cosas
+    - name: Checkout code (default behavior)
       uses: actions/checkout@v4
-      with:
-        path: 'my_project_code' # Clonamos en una carpeta simple llamada 'my_project_code'
 
-    - name: Debug Directory Structure
+    # Paso 2: Listar TODO desde GITHUB_WORKSPACE para entender la estructura
+    - name: Debug Initial Directory Structure
       shell: bash
       run: |
+        echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
         echo "Initial PWD: $(pwd)"
         echo "------------------------------------"
-        echo "Content of current directory (PWD) where checkout should have created 'my_project_code':"
-        ls -la .
-        echo "------------------------------------"
-        echo "Content of 'my_project_code' directory:"
-        ls -la ./my_project_code || echo "ls failed for ./my_project_code"
+        echo "Content of GITHUB_WORKSPACE (RECURSIVE ls -R):"
+        ls -R ${{ github.workspace }} || echo "ls -R failed for GITHUB_WORKSPACE"
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18' 
+    # Pasos siguientes comentados hasta que entendamos el checkout
+    # - name: Set up Node.js
+    #   uses: actions/setup-node@v4
+    #   with:
+    #     node-version: '18' 
 
-    - name: Install pnpm
-      run: npm install -g pnpm 
+    # - name: Install pnpm
+    #   run: npm install -g pnpm 
 
-    - name: Install dependencies with pnpm
-      shell: bash 
-      working-directory: ./my_project_code # Usamos la carpeta que creamos
-      run: pnpm install 
+    # - name: Determine Code Directory and Install Dependencies
+    #   shell: bash
+    #   run: |
+    #     # Intentar encontrar el package.json
+    #     CODE_DIR_WITH_PACKAGE_JSON=$(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)
+    #     if [ -z "$CODE_DIR_WITH_PACKAGE_JSON" ]; then
+    #       echo "package.json not found anywhere under ${{ github.workspace }}"
+    #       exit 1
+    #     fi
+    #     echo "Found package.json in: $CODE_DIR_WITH_PACKAGE_JSON"
+    #     cd "$CODE_DIR_WITH_PACKAGE_JSON"
+    #     echo "Current directory for pnpm install: $(pwd)"
+    #     pnpm install
 
-    - name: Build the executable
-      shell: bash 
-      working-directory: ./my_project_code # Usamos la carpeta que creamos
-      run: pnpm run build-exe 
+    # - name: Build the executable
+    #   shell: bash
+    #   # Asumiendo que CODE_DIR_WITH_PACKAGE_JSON fue el correcto
+    #   run: |
+    #     CODE_DIR_WITH_PACKAGE_JSON=$(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)
+    #     cd "$CODE_DIR_WITH_PACKAGE_JSON"
+    #     pnpm run build-exe 
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: PetroleumPumpDesigner-Windows 
-        path: ./my_project_code/PetroleumPumpDesigner.exe # Ruta relativa a la carpeta que creamos
+    # - name: Upload artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: PetroleumPumpDesigner-Windows 
+    #     # Asumiendo que CODE_DIR_WITH_PACKAGE_JSON fue el correcto
+    #     # y que el .exe se crea ahí
+    #     path: $(find ${{ github.workspace }} -name 'package.json' -printf '%h' -quit)/PetroleumPumpDesigner.exe
