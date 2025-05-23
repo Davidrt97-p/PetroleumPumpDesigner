@@ -19,7 +19,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
+        node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN! (Ej: la que te da 'node -v' en Replit)
 
     - name: Install pnpm
       run: npm install -g pnpm 
