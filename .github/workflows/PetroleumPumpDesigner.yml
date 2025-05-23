@@ -10,35 +10,48 @@ jobs:
     runs-on: windows-latest 
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-
-    - name: Install pnpm
-      run: npm install -g pnpm 
-
-    - name: Debug Directory Structure
+    - name: Print GITHUB_WORKSPACE and PWD before checkout
       shell: bash
       run: |
-        echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
-        echo "------------------------------------"
-        echo "Content of GITHUB_WORKSPACE:"
-        ls -la ${{ github.workspace }}
+        echo "Initial GITHUB_WORKSPACE: ${{ github.workspace }}"
+        echo "Initial PWD: $(pwd)"
 
-    - name: Install dependencies with pnpm
-      working-directory: ${{ github.workspace }}
-      run: pnpm install 
-
-    - name: Build the executable
-      working-directory: ${{ github.workspace }}
-      run: pnpm run build-exe 
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
+    - name: Checkout code into GITHUB_WORKSPACE root
+      uses: actions/checkout@v4
       with:
-        name: PetroleumPumpDesigner-Windows 
-        path: ${{ github.workspace }}/PetroleumPumpDesigner.exe
+        path: ${{ github.workspace }} # Intentar forzar el checkout a la ruta exacta de GITHUB_WORKSPACE
+
+    - name: Debug after checkout
+      shell: bash
+      run: |
+        echo "GITHUB_WORKSPACE after checkout: ${{ github.workspace }}"
+        echo "PWD after checkout: $(pwd)"
+        echo "------------------------------------"
+        echo "Content of GITHUB_WORKSPACE (ls -la ${{ github.workspace }} ):"
+        ls -la ${{ github.workspace }} || echo "ls failed for ${{ github.workspace }}"
+        echo "------------------------------------"
+        echo "Content of current PWD (ls -la . ):"
+        ls -la . || echo "ls failed for current PWD"
+
+    # Por ahora, comentaremos los pasos siguientes para aislar el problema del checkout y las rutas
+    # - name: Set up Node.js
+    #   uses: actions/setup-node@v4
+    #   with:
+    #     node-version: '18' 
+
+    # - name: Install pnpm
+    #   run: npm install -g pnpm 
+
+    # - name: Install dependencies with pnpm
+    #   working-directory: ${{ github.workspace }} # O la ruta correcta si el debug lo aclara
+    #   run: pnpm install 
+
+    # - name: Build the executable
+    #   working-directory: ${{ github.workspace }} # O la ruta correcta
+    #   run: pnpm run build-exe 
+
+    # - name: Upload artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: PetroleumPumpDesigner-Windows 
+    #     path: ${{ github.workspace }}/PetroleumPumpDesigner.exe # O la ruta correcta
