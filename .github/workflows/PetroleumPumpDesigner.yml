@@ -12,8 +12,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        path: '.' # <--- ¡CAMBIO MUY IMPORTANTE AQUÍ! Clona en el directorio raíz del workspace.
+      # SIN 'path: '.''. Esto clonará en una subcarpeta llamada 'PetroleumPumpDesigner'
+      # dentro de ${{ github.workspace }}.
+      # Entonces, tu código estará en ${{ github.workspace }}/PetroleumPumpDesigner
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -21,29 +22,29 @@ jobs:
         node-version: '18' # <-- ¡VERIFICA Y AJUSTA ESTA VERSIÓN!
 
     - name: Install pnpm
-      run: npm install -g pnpm
-      
+      run: npm install -g pnpm 
+
     - name: List files for debugging
       run: |
         echo "--- Current Directory (pwd) ---"
         pwd
         echo "--- Listing github.workspace (ls -la ${{ github.workspace }}) ---"
         ls -la ${{ github.workspace }}
-        echo "--- Listing github.workspace/PetroleumPumpDesigner (if it exists) ---"
+        echo "--- Listing github.workspace/PetroleumPumpDesigner (ls -la ${{ github.workspace }}/PetroleumPumpDesigner) ---"
         ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Directory ${{ github.workspace }}/PetroleumPumpDesigner does not exist or ls failed"
       shell: bash
 
     - name: Install dependencies with pnpm
-      # Ahora pnpm install se ejecuta en la raíz del workspace, donde está package.json
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # Ejecutar en la carpeta del repo
       run: pnpm install 
 
     - name: Build the executable
-      # Ahora pnpm run build-exe se ejecuta en la raíz del workspace
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner # Ejecutar en la carpeta del repo
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        # El ejecutable ahora se genera directamente en la raíz del workspace
-        path: PetroleumPumpDesigner.exe # <--- CAMBIO IMPORTANTE AQUÍ!
+        # El ejecutable se crea en ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe
+        path: ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe
