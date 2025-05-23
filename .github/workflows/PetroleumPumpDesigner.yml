@@ -12,10 +12,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        path: '.' # Clona el contenido DEL REPO directamente en GITHUB_WORKSPACE
-                  # Dado que GITHUB_WORKSPACE ya es D:\a\RepoName\RepoName,
-                  # tu código (package.json) estará ahora en D:\a\RepoName\RepoName\package.json
+      # SIN path. Debería clonar en ${{ github.workspace }}/NOMBREDELREPO
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -25,26 +22,31 @@ jobs:
     - name: Install pnpm
       run: npm install -g pnpm 
 
-    - name: List files for debugging AFTER checkout
-      run: |
-        echo "GITHUB_WORKSPACE is: ${{ github.workspace }}"
-        echo "Current PWD is: $(pwd)"
-        echo "Listing content of GITHUB_WORKSPACE / PWD (ls -la . ):"
-        ls -la .
+    - name: Debug Directory Structure
       shell: bash
+      run: |
+        echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
+        echo "------------------------------------"
+        echo "Content of GITHUB_WORKSPACE:"
+        ls -la ${{ github.workspace }}
+        echo "------------------------------------"
+        echo "Content of GITHUB_WORKSPACE/PetroleumPumpDesigner (POSSIBLE CODE LOCATION):"
+        ls -la ${{ github.workspace }}/PetroleumPumpDesigner || echo "Subdir not found or ls failed"
 
     - name: Install dependencies with pnpm
-      # Ahora se ejecuta en GITHUB_WORKSPACE (que es .../RepoName/RepoName),
-      # donde package.json debería estar gracias a path: '.'
+      # Asumiendo que el código está en ${{ github.workspace }}/PetroleumPumpDesigner
+      # y GITHUB_WORKSPACE es D:\a\PetroleumPumpDesigner\PetroleumPumpDesigner
+      # entonces la ruta real es D:\a\PetroleumPumpDesigner\PetroleumPumpDesigner\PetroleumPumpDesigner
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner 
       run: pnpm install 
 
     - name: Build the executable
-      # Se ejecuta en GITHUB_WORKSPACE
+      working-directory: ${{ github.workspace }}/PetroleumPumpDesigner
       run: pnpm run build-exe 
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: PetroleumPumpDesigner-Windows 
-        # El ejecutable se crea en GITHUB_WORKSPACE
-        path: PetroleumPumpDesigner.exe 
+        path: ${{ github.workspace }}/PetroleumPumpDesigner/PetroleumPumpDesigner.exe
+        
