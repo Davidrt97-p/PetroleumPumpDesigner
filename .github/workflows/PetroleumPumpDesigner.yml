@@ -1,31 +1,59 @@
-name: Build Windows Executable # Puedes mantener el nombre o cambiarlo a "Debug Workspace"
+name: Build Windows Executable
+
 on:
   push:
     branches: [ main ] 
   workflow_dispatch: 
 
 jobs:
-  build: # Puedes renombrar el job a 'debug_ubuntu_workspace' si quieres
-    runs-on: ubuntu-latest # <--- ¡CAMBIO IMPORTANTE AQUÍ!
+  build:
+    runs-on: windows-latest # Volvemos a Windows
 
     steps:
-    # Paso 1: Solo checkout, sin path, para ver dónde realmente pone las cosas
-    - name: Checkout code (default behavior)
+    - name: Checkout code
       uses: actions/checkout@v4
+      # Sin 'path'. Esto clonará en ${{ github.workspace }}/<nombre-del-repo>
+      # Si GITHUB_WORKSPACE = D:\a\X\X y repo = X, código estará en D:\a\X\X\X
 
-    # Paso 2: Listar TODO desde GITHUB_WORKSPACE para entender la estructura
-    - name: Debug Initial Directory Structure
-      shell: bash # En Ubuntu, bash es el shell por defecto, pero no hace daño ser explícito
+    - name: Define code directory (ahora sabemos que es triplemente anidado)
+      id: paths
+      shell: bash # Usamos bash para basename, que es más fácil
       run: |
-        echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
-        echo "Initial PWD: $(pwd)"
-        echo "------------------------------------"
-        echo "Content of GITHUB_WORKSPACE (RECURSIVE ls -R):"
-        ls -R ${{ github.workspace }} || echo "ls -R failed for GITHUB_WORKSPACE"
+        REPO_NAME=$(basename ${{ github.repository }})
+        # Esta es la ruta donde actions/checkout@v4 (sin path) DEBERÍA poner el código
+        # DADO que GITHUB_WORKSPACE ya está anidado, y checkout añade otro nivel.
+        echo "CODE_DIR=${{ github.workspace }}/$REPO_NAME" >> $GITHUB_OUTPUT
 
-    # El resto de los pasos siguen comentados porque solo queremos depurar el workspace y el checkout
-    # - name: Set up Node.js
-    #   uses: actions/setup-node@v4
-    #   with:
-    #     node-version: '18' 
-    # ... (y así sucesivamente)
+    - name: Debug Directory Structure (Windows)
+      shell: pwsh # Usamos PowerShell para Windows
+      run: |
+        Write-Output "GITHUB_WORKSPACE: ${{ github.workspace }}"
+        Write-Output "Code is in: ${{ steps.paths.outputs.CODE_DIR }}"
+        Write-Output "------------------------------------"
+        Write-Output "Content of GITHUB_WORKSPACE:"
+        Get-ChildItem -Path "${{ github.workspace }}" -Recurse -ErrorAction SilentlyContinue
+        Write-Output "------------------------------------"
+        Write-Output "Content of CODE_DIR:"
+        Get-ChildItem -Path "${{ steps.paths.outputs.CODE_DIR }}" -Recurse -ErrorAction SilentlyContinue
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18' # Ajusta si es necesario
+
+    - name: Install pnpm
+      run: npm install -g pnpm 
+
+    - name: Install dependencies with pnpm
+      working-directory: ${{ steps.paths.outputs.CODE_DIR }}
+      run: pnpm install 
+
+    - name: Build the executable
+      working-directory: ${{ steps.paths.outputs.CODE_DIR }}
+      run: pnpm run build-exe 
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PetroleumPumpDesigner-Windows 
+        path: ${{ steps.paths.outputs.CODE_DIR }}/PetroleumPumpDesigner.exe # Asumiendo que el .exe se crea aquí
